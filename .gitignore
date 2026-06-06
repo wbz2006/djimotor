@@ -1,0 +1,24 @@
+build
+mx.scratch
+!.settings
+
+# IDE配置文件
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+
+# 编译产物
+build/
+Debug/
+Release/
+*.o
+*.d
+*.elf
+*.hex
+*.bin
+
+# 日志文件
+*.log
