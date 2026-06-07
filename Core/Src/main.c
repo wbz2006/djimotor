@@ -47,33 +47,46 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
-static DJIMotorInstance *motor_lf; // left right forward back
-
-Motor_Init_Config_s chassis_motor_config = 
+Motor_Init_Config_s config = 
 {
-    .can_init_config.can_handle = &hcan1,
+    .motor_type = M3508,  // 要注册的电机为3508电机
+    .can_init_config = 
+    {
+        .can_handle = &hcan1, // 挂载在CAN1
+        .tx_id = 1
+    },          // C620每隔一段时间闪动1次,设置为1
+  // 采用电机编码器角度与速度反馈,启用速度环和电流环,不反转,最外层闭环为速度环
+    .controller_setting_init_config = 
+    {
+        .angle_feedback_source = MOTOR_FEED, 
+        .outer_loop_type = SPEED_LOOP,
+        .close_loop_type = SPEED_LOOP | CURRENT_LOOP, 
+        .speed_feedback_source = MOTOR_FEED, 
+        .motor_reverse_flag = MOTOR_DIRECTION_NORMAL
+    },
+     // 电流环和速度环PID参数的设置,不采用计算优化则不需要传入Improve参数
+        // 不使用其他数据来源(如IMU),不需要传入反馈数据变量指针
     .controller_param_init_config = 
     {
+        .current_PID = 
+        {
+            .Improve = 0,
+            .Kp = 1,
+            .Ki = 0,
+            .Kd = 0,
+            .DeadBand = 0,
+            .MaxOut = 4000
+        },
         .speed_PID = 
         {
-            .Kp = 4.5, // 4.5
-            .Ki = 0,   // 0
-            .Kd = 0,   // 0
-            .IntegralLimit = 3000,
-            .Improve = PID_Trapezoid_Intergral | PID_Integral_Limit | PID_Derivative_On_Measurement,
-            .MaxOut = 15000,
-            .Output_LPF_RC = 0.3,
-        },
-    },
-    .controller_setting_init_config =
-    {
-        .angle_feedback_source = MOTOR_FEED,
-        .speed_feedback_source = MOTOR_FEED,
-        .outer_loop_type = SPEED_LOOP, // 设置为开环，电机设定值由下面的功率控制设定，不走普通的pid
-        .close_loop_type = SPEED_LOOP,
-    },
-    .motor_type = M3508,
+            .Improve = 0,
+            .Kp = 1,
+            .Ki = 0,
+            .Kd = 0,
+            .DeadBand = 0,
+            .MaxOut = 4000
+        }
+    }
 };
 
 /* USER CODE END PV */
@@ -123,9 +136,9 @@ int main(void)
   MX_CAN2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  chassis_motor_config.can_init_config.tx_id = 1;
-  chassis_motor_config.controller_setting_init_config.motor_reverse_flag = MOTOR_DIRECTION_NORMAL;
-  motor_lf = PowerControlInit(&chassis_motor_config);
+  DJIMotorInstance *djimotor = DJIMotorInit(&config);
+  DJIMotorSetRef(djimotor, 50);
+  DJIMotorControl();
   /* USER CODE END 2 */
 
   /* Infinite loop */

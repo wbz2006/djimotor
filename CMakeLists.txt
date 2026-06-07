@@ -22,16 +22,6 @@ add_definitions(-D__ARM_ARCH=7)
 add_definitions(-D__ARM_ARCH_7M__)
 add_definitions(-D__ARM_ARCH_PROFILE='M')
 
-# Setup compiler settings
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS ON)
-
-# 解决SEGGER RTT在GCC 12+版本下的未知目标类型错误
-add_definitions(-D__ARM_ARCH=7)
-add_definitions(-D__ARM_ARCH_7M__)
-add_definitions(-D__ARM_ARCH_PROFILE='M')
-
 # Define the build type
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
@@ -66,6 +56,8 @@ file(GLOB_RECURSE LIB_SOURCES
     # ${CMAKE_SOURCE_DIR}/path/to/lib/*.c
     "bsp/*.c"
     "modules/*.c"
+    "SEGGER/RTT/*.c"
+    "SEGGER/Config/*.c"
 )
 
 # Add sources to executable
