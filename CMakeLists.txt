@@ -56,8 +56,8 @@ file(GLOB_RECURSE LIB_SOURCES
     # ${CMAKE_SOURCE_DIR}/path/to/lib/*.c
     "bsp/*.c"
     "modules/*.c"
-    "SEGGER/RTT/*.c"
-    "SEGGER/Config/*.c"
+    "Middlewares/Third_Party/SEGGER/RTT/*.c"
+    "Middlewares/Third_Party/SEGGER/Config/*.c"
 )
 
 # Add sources to executable
@@ -69,8 +69,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
-    ${CMAKE_SOURCE_DIR}/SEGGER/RTT
-    ${CMAKE_SOURCE_DIR}/SEGGER/Config
+    ${CMAKE_SOURCE_DIR}/Middlewares/Third_Party/SEGGER/RTT
+    ${CMAKE_SOURCE_DIR}/Middlewares/Third_Party/SEGGER/Config
     ${CMAKE_SOURCE_DIR}/bsp/can
     ${CMAKE_SOURCE_DIR}/bsp/dwt
     ${CMAKE_SOURCE_DIR}/bsp/log
@@ -79,6 +79,8 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/modules/algorithm
     ${CMAKE_SOURCE_DIR}/modules/motor
     ${CMAKE_SOURCE_DIR}/modules/motor/DJImotor
+    ${CMAKE_SOURCE_DIR}/modules/motor/DMmotor
+    ${CMAKE_SOURCE_DIR}/modules/remote
 )
 
 # Add project symbols (macros)

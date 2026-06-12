@@ -26,7 +26,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "DJI_motor.h"
-#include "power_control.h"
+#include "DMmotor.h"
+#include "bsp_dwt.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,39 +54,30 @@ Motor_Init_Config_s config =
     .can_init_config = 
     {
         .can_handle = &hcan1, // 挂载在CAN1
-        .tx_id = 1
+        .tx_id = 0
     },          // C620每隔一段时间闪动1次,设置为1
   // 采用电机编码器角度与速度反馈,启用速度环和电流环,不反转,最外层闭环为速度环
     .controller_setting_init_config = 
     {
         .angle_feedback_source = MOTOR_FEED, 
-        .outer_loop_type = SPEED_LOOP,
-        .close_loop_type = SPEED_LOOP | CURRENT_LOOP, 
+        .outer_loop_type = CURRENT_LOOP,
+        .close_loop_type = CURRENT_LOOP, 
         .speed_feedback_source = MOTOR_FEED, 
         .motor_reverse_flag = MOTOR_DIRECTION_NORMAL
     },
-     // 电流环和速度环PID参数的设置,不采用计算优化则不需要传入Improve参数
-        // 不使用其他数据来源(如IMU),不需要传入反馈数据变量指针
+    // 电流环和速度环PID参数的设置,不采用计算优化则不需要传入Improve参数
+    // 不使用其他数据来源(如IMU),不需要传入反馈数据变量指针
     .controller_param_init_config = 
     {
-        .current_PID = 
-        {
-            .Improve = 0,
-            .Kp = 1,
-            .Ki = 0,
-            .Kd = 0,
-            .DeadBand = 0,
-            .MaxOut = 4000
-        },
-        .speed_PID = 
-        {
-            .Improve = 0,
-            .Kp = 1,
-            .Ki = 0,
-            .Kd = 0,
-            .DeadBand = 0,
-            .MaxOut = 4000
-        }
+        .current_PID = {
+                .Improve = 0, 
+                .Kp = 1, 
+                .Ki = 0, 
+                .Kd = 0, 
+                .DeadBand = 0, 
+                .MaxOut = 16384,
+              }, 
+
     }
 };
 
@@ -108,7 +100,7 @@ void SystemClock_Config(void);
   */
 int main(void)
 {
-  
+
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -126,7 +118,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  DWT_Init(168);  // 初始化DWT定时器，STM32F407为168MHz
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -136,16 +128,31 @@ int main(void)
   MX_CAN2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+
+  BSPLogInit();
+  /*
   DJIMotorInstance *djimotor = DJIMotorInit(&config);
-  DJIMotorSetRef(djimotor, 50);
-  DJIMotorControl();
+  float ref_value = 600; // 设定值,可以修改为其他值或在循环中动态修改
+  DJIMotorSetRef(djimotor, ref_value);
+  */
+  DMMotorInstance *dm_motor = DMMotorInit(&config);
+  DMMotorSetRef(dm_motor, 0.0f);
+  
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    
+    //DJIMotorControl();  // 周期性调用控制函数
+    DMMotorControl();
+    SEGGER_RTT_printf(0, "canid:%d", dm_motor->measure.id);
+    /*
+    char uart_buf[100];
+    int len = sprintf(uart_buf, "%d,%d\r\n",(int16_t)ref_value, (int16_t)djimotor->measure.real_current);
+    HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf, len, HAL_MAX_DELAY);
+    */
+    HAL_Delay(2);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
