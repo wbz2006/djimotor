@@ -54,8 +54,9 @@ Motor_Init_Config_s config =
     .can_init_config = 
     {
         .can_handle = &hcan1, // 挂载在CAN1
-        .tx_id = 0
-    },          // C620每隔一段时间闪动1次,设置为1
+        .tx_id = 0x01,
+        .rx_id = 0x11, 
+    },
   // 采用电机编码器角度与速度反馈,启用速度环和电流环,不反转,最外层闭环为速度环
     .controller_setting_init_config = 
     {
@@ -146,7 +147,7 @@ int main(void)
   {
     //DJIMotorControl();  // 周期性调用控制函数
     DMMotorControl();
-    SEGGER_RTT_printf(0, "canid:%d", dm_motor->measure.id);
+    SEGGER_RTT_printf(0, "position:%d\t\n", (int16_t)dm_motor->measure.position);
     /*
     char uart_buf[100];
     int len = sprintf(uart_buf, "%d,%d\r\n",(int16_t)ref_value, (int16_t)djimotor->measure.real_current);
